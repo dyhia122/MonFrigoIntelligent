@@ -7,11 +7,13 @@ import androidx.room.Query
 
 @Dao
 interface UserDao {
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertUser(user: User)
 
-    @Query("SELECT * FROM users WHERE nom = :nom AND motDePasse = :motDePasse LIMIT 1")
-    suspend fun loginUser(nom: String, motDePasse: String): User?
+    // On ne compare plus le mot de passe directement dans Room
+    @Query("SELECT * FROM users WHERE nom = :nom LIMIT 1")
+    suspend fun getUserByNom(nom: String): User?
 
     @Query("SELECT * FROM users")
     suspend fun getAllUsers(): List<User>

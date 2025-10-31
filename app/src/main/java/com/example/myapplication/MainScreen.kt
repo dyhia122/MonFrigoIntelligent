@@ -1,17 +1,31 @@
 package com.example.myapplication
 
+import android.content.Intent
 import androidx.compose.runtime.*
+import androidx.compose.material3.*
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun MainScreen() {
     var currentScreen by remember { mutableStateOf("home") }
+    val context = LocalContext.current
 
     when (currentScreen) {
         "home" -> HomeScreen(
-            onNavigateToMenu = { currentScreen = "menu" },
-            onNavigateToCompte = { currentScreen = "compte" } // 👈 ajouté ici
+            onNavigateToMenu = {
+                // Lancer MenuScreen via Intent
+                val intent = Intent(context, MenuScreen::class.java)
+                context.startActivity(intent)
+            },
+            onNavigateToCompte = { currentScreen = "compte" }
         )
-        "menu" -> MenuScreen(onNavigateToHome = { currentScreen = "home" })
-        "compte" -> CompteScreen(onNavigateToHome = { currentScreen = "home" }) // 👈 nouveau
+
+        "compte" -> CompteScreen(
+            onNavigateToHome = { currentScreen = "home" },
+            onNavigateToMenu = {
+                val intent = Intent(context, MenuScreen::class.java)
+                context.startActivity(intent)
+            }
+        )
     }
 }

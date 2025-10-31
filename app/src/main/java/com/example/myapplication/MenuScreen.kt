@@ -1,86 +1,80 @@
 package com.example.myapplication
 
+import android.os.Bundle
+import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 
-@Composable
-fun MenuScreen(
-    modifier: Modifier = Modifier,
-    onNavigateToHome: () -> Unit // 👈 obligatoire pour revenir
-) {
-    val context = LocalContext.current
+class MenuScreen : AppCompatActivity() {
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Gestion de Frigo Intelligent",
-            fontSize = 24.sp,
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = 32.dp)
-        )
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-        Button(
-            onClick = { onNavigateToHome() },
-            modifier = Modifier
-                .width(200.dp)
-                .padding(bottom = 16.dp)
-        ) {
-            Text(text = "Accueil")
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(ContextCompat.getColor(this@MenuScreen, android.R.color.white))
+            setPadding(40, 80, 40, 40)
         }
 
-        Button(
-            onClick = {
-                Toast.makeText(context, "Ouverture de mon frigo", Toast.LENGTH_SHORT).show()
-            },
-            modifier = Modifier.width(200.dp)
-        ) {
-            Text(text = "Mon frigo")
+        val titre = TextView(this).apply {
+            text = "FridgeMate"
+            textSize = 26f
+            setTextColor(ContextCompat.getColor(this@MenuScreen, android.R.color.holo_blue_dark))
+            textAlignment = TextView.TEXT_ALIGNMENT_CENTER
+            setPadding(0, 0, 0, 40)
+        }
+        layout.addView(titre)
+
+        fun creerBouton(texte: String, couleur: Int): Button {
+            return Button(this).apply {
+                text = texte
+                setBackgroundColor(ContextCompat.getColor(this@MenuScreen, couleur))
+                setTextColor(ContextCompat.getColor(this@MenuScreen, android.R.color.white))
+                textSize = 18f
+                val params = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                params.setMargins(0, 0, 0, 20)
+                layoutParams = params
+            }
         }
 
-        Button(
-            onClick = {
-                Toast.makeText(context, "Ouverture de mes recettes", Toast.LENGTH_SHORT).show()
-            },
-            modifier = Modifier.width(200.dp)
-        ) {
-            Text(text = "Mes recettes")
+        val btnAccueil = creerBouton("Accueil", android.R.color.holo_blue_dark)
+        val btnFrigo = creerBouton("Mon Frigo", android.R.color.holo_blue_light)
+        val btnRecettes = creerBouton("Mes Recettes", android.R.color.holo_blue_dark)
+        val btnStats = creerBouton("Mes Statistiques", android.R.color.holo_blue_light)
+        val btnCorbeille = creerBouton("Corbeille", android.R.color.holo_blue_dark)
+
+        layout.addView(btnAccueil)
+        layout.addView(btnFrigo)
+        layout.addView(btnRecettes)
+        layout.addView(btnStats)
+        layout.addView(btnCorbeille)
+
+        btnAccueil.setOnClickListener {
+            Toast.makeText(this, "Accueil ouvert", Toast.LENGTH_SHORT).show()
         }
 
-        Button(
-            onClick = {
-                Toast.makeText(context, "Ouverture de mes statistiques", Toast.LENGTH_SHORT).show()
-            },
-            modifier = Modifier.width(200.dp)
-        ) {
-            Text(text = "Mes statistiques")
+        btnFrigo.setOnClickListener {
+            Toast.makeText(this, "Ouverture du frigo...", Toast.LENGTH_SHORT).show()
         }
 
-        Button(
-            onClick = {
-                Toast.makeText(context, "Ouverture de ma corbeille", Toast.LENGTH_SHORT).show()
-            },
-            modifier = Modifier.width(200.dp)
-        ) {
-            Text(text = "Corbeille")
+        btnRecettes.setOnClickListener {
+            Toast.makeText(this, "Ouverture des recettes...", Toast.LENGTH_SHORT).show()
         }
 
-        Text(
-            text = "Menu",
-            fontSize = 24.sp,
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(top = 32.dp)
-        )
+        btnStats.setOnClickListener {
+            Toast.makeText(this, "Ouverture des statistiques...", Toast.LENGTH_SHORT).show()
+        }
+
+        btnCorbeille.setOnClickListener {
+            Toast.makeText(this, "Ouverture de la corbeille...", Toast.LENGTH_SHORT).show()
+        }
+
+        setContentView(layout)
     }
 }
