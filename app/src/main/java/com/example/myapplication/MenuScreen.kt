@@ -1,5 +1,6 @@
 package com.example.myapplication
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.LinearLayout
@@ -55,14 +56,21 @@ class MenuScreen : AppCompatActivity() {
         layout.addView(btnStats)
         layout.addView(btnCorbeille)
 
+        // === 🏠 Accueil : ouvre HomeScreen ===
         btnAccueil.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
             Toast.makeText(this, "Accueil ouvert", Toast.LENGTH_SHORT).show()
         }
 
+        // === 🧊 Mon Frigo : ouvre FrigoActivity ===
         btnFrigo.setOnClickListener {
+            val intent = Intent(this, FrigoActivity::class.java)
+            startActivity(intent)
             Toast.makeText(this, "Ouverture du frigo...", Toast.LENGTH_SHORT).show()
         }
 
+        // === Les autres ===
         btnRecettes.setOnClickListener {
             Toast.makeText(this, "Ouverture des recettes...", Toast.LENGTH_SHORT).show()
         }

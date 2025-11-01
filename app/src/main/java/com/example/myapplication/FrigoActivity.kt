@@ -3,7 +3,7 @@ package com.example.myapplication
 import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AlertDialog  // ✅ AJOUTE CETTE LIGNE
+import androidx.appcompat.app.AlertDialog
 
 class FrigoActivity : AppCompatActivity() {
 
