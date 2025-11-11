@@ -68,7 +68,7 @@ fun CompteScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* éventuellement page Compte */ }) {
+                    IconButton(onClick = { /* peut rester vide */ }) {
                         Icon(Icons.Default.AccountCircle, contentDescription = "Compte", tint = Color.White)
                     }
                 },
@@ -126,7 +126,7 @@ fun CompteScreen(
                                 val hashSaisi = hashPassword(motDePasse, user.salt)
                                 if (hashSaisi == user.motDePasseHash) {
                                     Toast.makeText(context, "Connexion réussie ✅", Toast.LENGTH_SHORT).show()
-                                    onNavigateToHome()
+                                    onNavigateToHome() // uniquement ici
                                 } else {
                                     Toast.makeText(context, "Nom ou mot de passe incorrect ❌", Toast.LENGTH_SHORT).show()
                                 }
@@ -151,7 +151,7 @@ fun CompteScreen(
                                 val motDePasseHash = hashPassword(motDePasse, salt)
                                 userDao.insertUser(User(nom = nom, motDePasseHash = motDePasseHash, salt = salt))
                                 Toast.makeText(context, "Compte créé avec succès ✅", Toast.LENGTH_SHORT).show()
-                                onNavigateToHome()
+                                onNavigateToHome() // uniquement ici
                             }
                         } else {
                             Toast.makeText(context, "Veuillez remplir tous les champs ❗", Toast.LENGTH_SHORT).show()
@@ -166,7 +166,7 @@ fun CompteScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                TextButton(onClick = { onNavigateToHome() }) {
+                TextButton(onClick = { /* peut rester vide ou revenir à Frigo */ }) {
                     Text("← Retour à l'accueil", color = Color(0xFF0D47A1))
                 }
             }
