@@ -8,6 +8,6 @@ import androidx.room.PrimaryKey
 data class Aliment(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val nom: String,
-    val quantite: Int,  // Par exemple, en unités
-    val dateExpiration: String  // Format simple : "YYYY-MM-DD"
+    val quantite: Int,
+    val dateExpiration: String
 )

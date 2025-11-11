@@ -1,25 +1,29 @@
 package com.example.myapplication
 
+import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import android.content.Context
 
 @Database(entities = [Aliment::class], version = 1, exportSchema = false)
 abstract class FrigoDatabase : RoomDatabase() {
+
     abstract fun alimentDao(): AlimentDao
 
     companion object {
         @Volatile
-        private var INSTANCE: FrigoDatabase? = null  // Corrigé : était AppDatabase
+        private var INSTANCE: FrigoDatabase? = null
 
-        fun getDatabase(context: Context): FrigoDatabase {  // Corrigé : retour FrigoDatabase
+        fun getDatabase(context: Context): FrigoDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
-                    FrigoDatabase::class.java,  // Corrigé : était AppDatabase
+                    FrigoDatabase::class.java,
                     "fridge_database"
-                ).build()
+                )
+                    // 🔄 Option utile : recrée la DB si le schéma change
+                    .fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }
