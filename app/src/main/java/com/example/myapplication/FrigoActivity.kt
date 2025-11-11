@@ -14,34 +14,29 @@ class FrigoActivity : AppCompatActivity() {
     private lateinit var btnMenu: Button
     private lateinit var btnCompte: Button
 
-    private val aliments = mutableListOf<String>()
+    private val aliments = mutableListOf<Aliment>() // maintenant c'est la liste d'objets Aliment
     private lateinit var adapter: ArrayAdapter<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_frigo)
 
-        // Liaison XML
         listeAliments = findViewById(R.id.listeAliments)
         textAucunAliment = findViewById(R.id.textAucunAliment)
         btnAjouter = findViewById(R.id.btnAjouter)
         btnMenu = findViewById(R.id.btnMenu)
         btnCompte = findViewById(R.id.btnCompte)
 
-        // Adapter pour afficher la liste
-        adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, aliments)
+        adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, aliments.map { formatAliment(it) })
         listeAliments.adapter = adapter
 
-        // Bouton ajouter un aliment
         btnAjouter.setOnClickListener { afficherDialogAjout() }
 
-        // 🔹 Bouton Menu → ouvre ton MenuScreen (ou activité menu)
         btnMenu.setOnClickListener {
             val intent = Intent(this, MenuScreen::class.java)
             startActivity(intent)
         }
 
-        // 🔹 Bouton Compte → ouvre ton écran compte
         btnCompte.setOnClickListener {
             val intent = Intent(this, CompteActivity::class.java)
             startActivity(intent)
@@ -50,21 +45,44 @@ class FrigoActivity : AppCompatActivity() {
         mettreAJourAffichage()
     }
 
-    // Boîte de dialogue d’ajout d’aliment
     private fun afficherDialogAjout() {
-        val editText = EditText(this)
-        editText.hint = "Nom de l’aliment"
+        // Layout personnalisé pour le dialog
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(24, 24, 24, 24)
+        }
+
+        val nomInput = EditText(this)
+        nomInput.hint = "Nom de l’aliment"
+        layout.addView(nomInput)
+
+        val quantiteInput = EditText(this)
+        quantiteInput.hint = "Quantité"
+        quantiteInput.inputType = android.text.InputType.TYPE_CLASS_NUMBER
+        layout.addView(quantiteInput)
+
+        val dateInput = EditText(this)
+        dateInput.hint = "Date d’expiration (YYYY-MM-DD)"
+        layout.addView(dateInput)
 
         AlertDialog.Builder(this)
             .setTitle("Ajouter un aliment")
-            .setView(editText)
+            .setView(layout)
             .setPositiveButton("Ajouter") { _, _ ->
-                val nom = editText.text.toString().trim()
-                if (nom.isNotEmpty()) {
-                    aliments.add(nom)
+                val nom = nomInput.text.toString().trim()
+                val quantite = quantiteInput.text.toString().toIntOrNull() ?: 1
+                val dateExp = dateInput.text.toString().trim()
+
+                if (nom.isNotEmpty() && dateExp.isNotEmpty()) {
+                    val aliment = Aliment(nom = nom, quantite = quantite, dateExpiration = dateExp)
+                    aliments.add(aliment)
+                    adapter.clear()
+                    adapter.addAll(aliments.map { formatAliment(it) })
                     adapter.notifyDataSetChanged()
                     Toast.makeText(this, "$nom ajouté au frigo", Toast.LENGTH_SHORT).show()
                     mettreAJourAffichage()
+                } else {
+                    Toast.makeText(this, "Veuillez remplir tous les champs", Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton("Annuler", null)
@@ -72,8 +90,11 @@ class FrigoActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun formatAliment(aliment: Aliment): String {
+        return "${aliment.nom} - ${aliment.quantite} pcs - Exp: ${aliment.dateExpiration}"
+    }
+
     private fun mettreAJourAffichage() {
-        textAucunAliment.visibility =
-            if (aliments.isEmpty()) TextView.VISIBLE else TextView.GONE
+        textAucunAliment.visibility = if (aliments.isEmpty()) TextView.VISIBLE else TextView.GONE
     }
 }
