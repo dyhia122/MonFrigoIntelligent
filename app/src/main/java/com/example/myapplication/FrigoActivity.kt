@@ -3,10 +3,11 @@ package com.example.myapplication
 import android.content.Intent
 import android.os.Bundle
 import android.widget.*
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -18,34 +19,29 @@ class FrigoActivity : AppCompatActivity() {
     private lateinit var btnMenu: Button
     private lateinit var btnCompte: Button
 
-    private val aliments = mutableListOf<Aliment>()
-    private lateinit var adapter: AlimentAdapter
     private lateinit var dao: AlimentDao
+    private lateinit var adapter: AlimentAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContentView(R.layout.activity_frigo)
 
-        // UI
         listeAliments = findViewById(R.id.listeAliments)
         textAucunAliment = findViewById(R.id.textAucunAliment)
         btnAjouter = findViewById(R.id.btnAjouter)
         btnMenu = findViewById(R.id.btnMenu)
         btnCompte = findViewById(R.id.btnCompte)
 
-        // DAO Room
         dao = FrigoDatabase.getDatabase(this).alimentDao()
-
-        adapter = AlimentAdapter(this, aliments, dao, this)
+        adapter = AlimentAdapter(this, mutableListOf(), dao)
         listeAliments.adapter = adapter
 
-        // Observer Room
         lifecycleScope.launch {
-            dao.getAllAliments().collect { alimentsBDD ->
-                aliments.clear()
-                aliments.addAll(alimentsBDD)
-                adapter.notifyDataSetChanged()
-                mettreAJourAffichage()
+            dao.getAllAliments().collectLatest { aliments ->
+                adapter.updateData(aliments)
+                textAucunAliment.visibility =
+                    if (aliments.isEmpty()) TextView.VISIBLE else TextView.GONE
             }
         }
 
@@ -57,6 +53,15 @@ class FrigoActivity : AppCompatActivity() {
 
         btnCompte.setOnClickListener {
             startActivity(Intent(this, CompteActivity::class.java))
+        }
+    }
+
+    private fun dateValide(date: String): Boolean {
+        return try {
+            LocalDate.parse(date)
+            true
+        } catch (_: Exception) {
+            false
         }
     }
 
@@ -91,36 +96,16 @@ class FrigoActivity : AppCompatActivity() {
                 }
 
                 if (!dateValide(dateExp)) {
-                    Toast.makeText(this, "Format de date invalide (YYYY-MM-DD)", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Format date incorrect (YYYY-MM-DD)", Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
 
-                val aliment = Aliment(
-                    nom = nom,
-                    quantite = quantite,
-                    dateExpiration = dateExp
-                )
-
-                lifecycleScope.launch { dao.insert(aliment) }
-
-                Toast.makeText(this, "$nom ajouté!", Toast.LENGTH_SHORT).show()
+                lifecycleScope.launch {
+                    dao.insert(Aliment(nom = nom, quantite = quantite, dateExpiration = dateExp))
+                }
             }
             .setNegativeButton("Annuler", null)
             .create()
             .show()
-    }
-
-    private fun dateValide(date: String): Boolean {
-        return try {
-            LocalDate.parse(date)
-            true
-        } catch (e: Exception) {
-            false
-        }
-    }
-
-    private fun mettreAJourAffichage() {
-        textAucunAliment.visibility =
-            if (aliments.isEmpty()) TextView.VISIBLE else TextView.GONE
     }
 }
