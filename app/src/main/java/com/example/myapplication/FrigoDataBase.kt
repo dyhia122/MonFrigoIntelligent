@@ -5,10 +5,11 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [Aliment::class], version = 1, exportSchema = false)
+@Database(entities = [Aliment::class, CorbeilleAliment::class], version = 2, exportSchema = false)
 abstract class FrigoDatabase : RoomDatabase() {
 
     abstract fun alimentDao(): AlimentDao
+    abstract fun corbeilleDao(): CorbeilleDao
 
     companion object {
         @Volatile
@@ -21,7 +22,6 @@ abstract class FrigoDatabase : RoomDatabase() {
                     FrigoDatabase::class.java,
                     "fridge_database"
                 )
-                    // 🔄 Option utile : recrée la DB si le schéma change
                     .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance

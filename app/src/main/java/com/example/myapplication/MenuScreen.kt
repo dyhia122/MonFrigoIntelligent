@@ -80,8 +80,12 @@ class MenuScreen : AppCompatActivity() {
         }
 
         btnCorbeille.setOnClickListener {
+            val intent = Intent(this, CorbeilleActivity::class.java)
+            startActivity(intent)
+            // Optionnel : toast
             Toast.makeText(this, "Ouverture de la corbeille...", Toast.LENGTH_SHORT).show()
         }
+
 
         setContentView(layout)
     }
