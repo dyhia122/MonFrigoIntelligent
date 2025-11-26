@@ -44,7 +44,6 @@ class AlimentAdapter(
 
         nom.text = aliment.nom
         quantite.text = "Quantité : ${aliment.quantite}"
-
         expiration.text = getExpirationText(aliment.dateExpiration)
 
         btnPlus.setOnClickListener {
