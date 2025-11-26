@@ -1,6 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- ⚠️ Permission caméra obligatoire -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- (optionnel) nécessaire pour l’écriture si tu fais des sauvegardes -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -11,6 +18,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
 
+        <!-- Écran principal -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -22,14 +30,22 @@
             </intent-filter>
         </activity>
 
-
+        <!-- Écran frigo -->
         <activity
             android:name=".FrigoActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
 
+        <!-- Menu -->
         <activity
             android:name=".MenuScreen"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
+        <!-- 🚀 Scanner (à AJOUTER absolument) -->
+        <activity
+            android:name=".ScanActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
     </application>
 
 </manifest>

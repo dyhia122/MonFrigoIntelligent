@@ -44,6 +44,15 @@
         android:layout_weight="1"
         android:divider="@android:color/darker_gray"
         android:dividerHeight="1dp" />
+    <Button
+        android:id="@+id/btnScanner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Scanner un code-barres"
+        android:backgroundTint="#1976D2"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp"/>
 
     <Button
         android:id="@+id/btnAjouter"

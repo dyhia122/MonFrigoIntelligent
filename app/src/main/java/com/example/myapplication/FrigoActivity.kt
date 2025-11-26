@@ -1,5 +1,7 @@
 package com.example.myapplication
 
+import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -7,8 +9,6 @@ import android.widget.*
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -25,6 +25,9 @@ class FrigoActivity : AppCompatActivity() {
     private lateinit var listeAliments: ListView
     private lateinit var textAucunAliment: TextView
     private lateinit var btnAjouter: Button
+    private lateinit var btnScanner: Button
+    private lateinit var btnMenu: Button   // ← AJOUTÉ
+    private lateinit var btnCompte: Button // ← AJOUTÉ
     private lateinit var dao: AlimentDao
     private lateinit var adapter: AlimentAdapter
 
@@ -36,11 +39,11 @@ class FrigoActivity : AppCompatActivity() {
         // Notification channel
         NotificationHelper.createNotificationChannel(this)
 
-        // Permissions Android 13+
+        // Permissions Android 13+ pour notifications
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
                 != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1)
+                requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
             }
         }
 
@@ -52,7 +55,12 @@ class FrigoActivity : AppCompatActivity() {
         listeAliments = findViewById(R.id.listeAliments)
         listeAliments.adapter = adapter
         textAucunAliment = findViewById(R.id.textAucunAliment)
+
         btnAjouter = findViewById(R.id.btnAjouter)
+        btnScanner = findViewById(R.id.btnScanner)
+
+        btnMenu = findViewById(R.id.btnMenu)       // ← AJOUTÉ
+        btnCompte = findViewById(R.id.btnCompte)   // ← AJOUTÉ
 
         // Observer les aliments
         lifecycleScope.launch {
@@ -65,22 +73,28 @@ class FrigoActivity : AppCompatActivity() {
         // Bouton ajouter
         btnAjouter.setOnClickListener { afficherDialogAjout() }
 
+        // Bouton scanner
+        btnScanner.setOnClickListener {
+            val intent = Intent(this, ScanActivity::class.java)
+            startActivityForResult(intent, 200)
+        }
+
+        // Bouton Menu → MenuScreen
+        btnMenu.setOnClickListener {
+            val intent = Intent(this, MenuScreen::class.java)
+            startActivity(intent)
+        }
+
+        // Bouton Compte → CompteActivity
+        btnCompte.setOnClickListener {
+            val intent = Intent(this, CompteActivity::class.java)
+            startActivity(intent)
+        }
+
         // Lancer Worker périodique
         lancerVerificationExpiration()
 
-        // Test immédiat notification
-        NotificationManagerCompat.from(this).notify(
-            123,
-            NotificationCompat.Builder(this, "expiration_channel")
-                .setSmallIcon(android.R.drawable.ic_dialog_alert)
-                .setContentTitle("Test Notification")
-                .setContentText("Si tu vois ceci, les notifications fonctionnent !")
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setAutoCancel(true)
-                .build()
-        )
-
-        // Test du Worker une fois
+        // Test immédiat du Worker
         val testWorker = OneTimeWorkRequestBuilder<ExpirationWorker>().build()
         WorkManager.getInstance(this).enqueue(testWorker)
     }
@@ -88,7 +102,7 @@ class FrigoActivity : AppCompatActivity() {
     private fun afficherDialogAjout() {
         val layout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(24,24,24,24)
+            setPadding(24, 24, 24, 24)
         }
         val nomInput = EditText(this).apply { hint = "Nom de l’aliment" }
         val quantiteInput = EditText(this).apply {
@@ -114,14 +128,19 @@ class FrigoActivity : AppCompatActivity() {
                     return@setPositiveButton
                 }
 
-                lifecycleScope.launch { dao.insert(Aliment(nom = nom, quantite = quantite, dateExpiration = dateExp)) }
+                lifecycleScope.launch {
+                    dao.insert(Aliment(nom = nom, quantite = quantite, dateExpiration = dateExp))
+                }
             }
             .setNegativeButton("Annuler", null)
             .show()
     }
 
     private fun dateValide(date: String): Boolean {
-        return try { LocalDate.parse(date); true } catch (_: Exception) { false }
+        return try {
+            LocalDate.parse(date)
+            true
+        } catch (_: Exception) { false }
     }
 
     private fun lancerVerificationExpiration() {
@@ -131,5 +150,13 @@ class FrigoActivity : AppCompatActivity() {
             ExistingPeriodicWorkPolicy.KEEP,
             request
         )
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 200 && resultCode == RESULT_OK) {
+            val scannedCode = data?.getStringExtra("scanned_code") ?: return
+            Toast.makeText(this, "Code scanné: $scannedCode", Toast.LENGTH_SHORT).show()
+        }
     }
 }
