@@ -2,12 +2,10 @@ package com.example.myapplication
 
 import android.content.Context
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.TextView
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class CorbeilleAdapter(
     private val context: Context,
@@ -24,16 +22,17 @@ class CorbeilleAdapter(
     override fun getItem(position: Int): Any = aliments[position]
     override fun getItemId(position: Int): Long = aliments[position].id.toLong()
 
-    override fun getView(position: Int, convertView: android.view.View?, parent: ViewGroup?): android.view.View {
+    override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         val view = convertView ?: LayoutInflater.from(context)
-            .inflate(android.R.layout.simple_list_item_2, parent, false)
+            .inflate(R.layout.item_corbeille, parent, false)
 
         val aliment = aliments[position]
-        val text1 = view.findViewById<TextView>(android.R.id.text1)
-        val text2 = view.findViewById<TextView>(android.R.id.text2)
 
-        text1.text = "${aliment.nom} x${aliment.quantite}"
-        text2.text = "Supprimé le ${aliment.dateSuppression} | Exp: ${aliment.dateExpiration}"
+        val textNom = view.findViewById<TextView>(R.id.textNom)
+        val textDetails = view.findViewById<TextView>(R.id.textDetails)
+
+        textNom.text = "${aliment.nom} x${aliment.quantite}"
+        textDetails.text = "Supprimé le ${aliment.dateSuppression} | Exp: ${aliment.dateExpiration}"
 
         return view
     }

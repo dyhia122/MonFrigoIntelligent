@@ -1,6 +1,7 @@
 package com.example.myapplication
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Toast
@@ -78,7 +79,6 @@ class ScanActivity : AppCompatActivity() {
                 .build()
 
             analysis.setAnalyzer(ContextCompat.getMainExecutor(this)) { imageProxy ->
-
                 processImage(scanner, imageProxy)
             }
 
@@ -110,19 +110,26 @@ class ScanActivity : AppCompatActivity() {
                     for (barcode in barcodes) {
                         val value = barcode.rawValue ?: "Inconnu"
 
-                        Toast.makeText(this, "Code scanné : $value", Toast.LENGTH_LONG).show()
+                        // Renvoie le résultat au FrigoActivity
+                        val resultIntent = Intent().apply {
+                            putExtra("scanned_code", value)
+                        }
+                        setResult(RESULT_OK, resultIntent)
+                        finish()
 
                         imageProxy.close()
-                        finish()
                         return@addOnSuccessListener
                     }
                 }
-                .addOnFailureListener { e ->
-                    e.printStackTrace()
+                .addOnFailureListener {
+                    it.printStackTrace()
                 }
                 .addOnCompleteListener {
-                    imageProxy.close()
+                    try { imageProxy.close() } catch (_: Exception) {}
                 }
+        } else {
+            try { imageProxy.close() } catch (_: Exception) {}
         }
     }
+
 }

@@ -46,6 +46,18 @@
             android:exported="false"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
 
+        <!-- Ajouté : Corbeille -->
+        <activity
+            android:name=".CorbeilleActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
+        <!-- Ajouté : Compte -->
+        <activity
+            android:name=".CompteActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
     </application>
 
 </manifest>

@@ -6,27 +6,7 @@
     android:padding="24dp"
     android:background="#F3F7FB">
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:padding="8dp">
-
-        <Button
-            android:id="@+id/btnMenu"
-            android:text="Menu"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"/>
-
-        <Button
-            android:id="@+id/btnCompte"
-            android:text="Compte"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-    </LinearLayout>
-
+    <!-- Message Aucun aliment -->
     <TextView
         android:id="@+id/textAucunAliment"
         android:layout_width="match_parent"
@@ -35,8 +15,10 @@
         android:textSize="18sp"
         android:textColor="#1976D2"
         android:gravity="center"
-        android:paddingBottom="16dp" />
+        android:paddingBottom="16dp"
+        android:layout_marginTop="16dp"/>
 
+    <!-- Liste des aliments -->
     <ListView
         android:id="@+id/listeAliments"
         android:layout_width="match_parent"
@@ -44,24 +26,5 @@
         android:layout_weight="1"
         android:divider="@android:color/darker_gray"
         android:dividerHeight="1dp" />
-    <Button
-        android:id="@+id/btnScanner"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Scanner un code-barres"
-        android:backgroundTint="#1976D2"
-        android:textColor="@android:color/white"
-        android:textSize="18sp"
-        android:layout_marginBottom="16dp"/>
 
-    <Button
-        android:id="@+id/btnAjouter"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Ajouter un aliment"
-        android:backgroundTint="#1976D2"
-        android:textColor="@android:color/white"
-        android:textSize="18sp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp" />
 </LinearLayout>

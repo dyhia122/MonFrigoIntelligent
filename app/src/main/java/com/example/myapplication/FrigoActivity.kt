@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.widget.*
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -19,6 +20,18 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import com.example.myapplication.CompteActivity
 
 class FrigoActivity : AppCompatActivity() {
 
@@ -26,89 +39,99 @@ class FrigoActivity : AppCompatActivity() {
     private lateinit var textAucunAliment: TextView
     private lateinit var btnAjouter: Button
     private lateinit var btnScanner: Button
-    private lateinit var btnMenu: Button   // ← AJOUTÉ
-    private lateinit var btnCompte: Button // ← AJOUTÉ
     private lateinit var dao: AlimentDao
+    private lateinit var corbeilleDao: CorbeilleDao
     private lateinit var adapter: AlimentAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_frigo)
 
-        // Notification channel
-        NotificationHelper.createNotificationChannel(this)
+        // DAO et adapter
+        dao = FrigoDatabase.getDatabase(this).alimentDao()
+        corbeilleDao = FrigoDatabase.getDatabase(this).corbeilleDao()
+        adapter = AlimentAdapter(this, mutableListOf(), dao, corbeilleDao)
 
-        // Permissions Android 13+ pour notifications
+        // Permissions notifications Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                != PackageManager.PERMISSION_GRANTED) {
+                != PackageManager.PERMISSION_GRANTED
+            ) {
                 requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
             }
         }
 
-        // DAO et adapter
-        dao = FrigoDatabase.getDatabase(this).alimentDao()
-        adapter = AlimentAdapter(this, mutableListOf(), dao)
+        // Notification channel
+        NotificationHelper.createNotificationChannel(this)
 
-        // Vues
-        listeAliments = findViewById(R.id.listeAliments)
-        listeAliments.adapter = adapter
-        textAucunAliment = findViewById(R.id.textAucunAliment)
-
-        btnAjouter = findViewById(R.id.btnAjouter)
-        btnScanner = findViewById(R.id.btnScanner)
-
-        btnMenu = findViewById(R.id.btnMenu)       // ← AJOUTÉ
-        btnCompte = findViewById(R.id.btnCompte)   // ← AJOUTÉ
+        // Utilisation de Compose pour le TopAppBar
+        setContent {
+            FrigoScreenWithTopBar(
+                onNavigateToMenu = { startActivity(Intent(this, MenuScreen::class.java)) },
+                onNavigateToCompte = { startActivity(Intent(this, CompteActivity::class.java)) }
+            )
+        }
 
         // Observer les aliments
         lifecycleScope.launch {
             dao.getAllAliments().collectLatest { aliments ->
                 adapter.updateData(aliments)
-                textAucunAliment.visibility = if (aliments.isEmpty()) TextView.VISIBLE else TextView.GONE
             }
-        }
-
-        // Bouton ajouter
-        btnAjouter.setOnClickListener { afficherDialogAjout() }
-
-        // Bouton scanner
-        btnScanner.setOnClickListener {
-            val intent = Intent(this, ScanActivity::class.java)
-            startActivityForResult(intent, 200)
-        }
-
-        // Bouton Menu → MenuScreen
-        btnMenu.setOnClickListener {
-            val intent = Intent(this, MenuScreen::class.java)
-            startActivity(intent)
-        }
-
-        // Bouton Compte → CompteActivity
-        btnCompte.setOnClickListener {
-            val intent = Intent(this, CompteActivity::class.java)
-            startActivity(intent)
         }
 
         // Lancer Worker périodique
         lancerVerificationExpiration()
-
-        // Test immédiat du Worker
         val testWorker = OneTimeWorkRequestBuilder<ExpirationWorker>().build()
         WorkManager.getInstance(this).enqueue(testWorker)
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == 200 && resultCode == RESULT_OK) {
+            val scannedCode = data?.getStringExtra("scanned_code") ?: run {
+                Toast.makeText(this, "Aucun code reçu", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            lifecycleScope.launch {
+                val produit = rechercherProduitParCode(scannedCode)
+                if (produit == null) {
+                    runOnUiThread {
+                        AlertDialog.Builder(this@FrigoActivity)
+                            .setTitle("Produit inconnu")
+                            .setMessage("Aucun produit trouvé pour le code $scannedCode.\nSouhaites-tu l'ajouter manuellement ?")
+                            .setPositiveButton("Oui") { _, _ -> afficherDialogAjoutAvecNom("") }
+                            .setNegativeButton("Non", null)
+                            .show()
+                    }
+                } else {
+                    dao.insert(
+                        Aliment(
+                            nom = produit.nom,
+                            quantite = 1,
+                            dateExpiration = produit.dateExpiration
+                        )
+                    )
+                    runOnUiThread {
+                        Toast.makeText(this@FrigoActivity, "${produit.nom} ajouté au frigo", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
+    }
+
     private fun afficherDialogAjout() {
+        afficherDialogAjoutAvecNom(null)
+    }
+
+    private fun afficherDialogAjoutAvecNom(prefillName: String?) {
         val layout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(24, 24, 24, 24)
         }
-        val nomInput = EditText(this).apply { hint = "Nom de l’aliment" }
-        val quantiteInput = EditText(this).apply {
-            hint = "Quantité"
-            inputType = android.text.InputType.TYPE_CLASS_NUMBER
-        }
+        val nomInput = EditText(this).apply { hint = "Nom de l’aliment"; setText(prefillName ?: "") }
+        val quantiteInput = EditText(this).apply { hint = "Quantité"; inputType = android.text.InputType.TYPE_CLASS_NUMBER }
         val dateInput = EditText(this).apply { hint = "Date d’expiration (YYYY-MM-DD)" }
 
         layout.addView(nomInput)
@@ -122,12 +145,10 @@ class FrigoActivity : AppCompatActivity() {
                 val nom = nomInput.text.toString().trim()
                 val quantite = quantiteInput.text.toString().toIntOrNull() ?: 1
                 val dateExp = dateInput.text.toString().trim()
-
                 if (nom.isEmpty() || dateExp.isEmpty() || !dateValide(dateExp)) {
                     Toast.makeText(this, "Remplir correctement tous les champs", Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
-
                 lifecycleScope.launch {
                     dao.insert(Aliment(nom = nom, quantite = quantite, dateExpiration = dateExp))
                 }
@@ -137,10 +158,7 @@ class FrigoActivity : AppCompatActivity() {
     }
 
     private fun dateValide(date: String): Boolean {
-        return try {
-            LocalDate.parse(date)
-            true
-        } catch (_: Exception) { false }
+        return try { LocalDate.parse(date); true } catch (_: Exception) { false }
     }
 
     private fun lancerVerificationExpiration() {
@@ -152,11 +170,92 @@ class FrigoActivity : AppCompatActivity() {
         )
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 200 && resultCode == RESULT_OK) {
-            val scannedCode = data?.getStringExtra("scanned_code") ?: return
-            Toast.makeText(this, "Code scanné: $scannedCode", Toast.LENGTH_SHORT).show()
+    data class ProduitScanne(val nom: String, val dateExpiration: String)
+
+    private suspend fun rechercherProduitParCode(code: String): ProduitScanne? {
+        return when (code.trim()) {
+            "3017620422003" -> ProduitScanne("Nutella", LocalDate.now().plusMonths(6).toString())
+            "3229820783223" -> ProduitScanne("Lait demi-écrémé", LocalDate.now().plusDays(7).toString())
+            "036000291452" -> ProduitScanne("Céréales aux fruits", LocalDate.now().plusMonths(3).toString())
+            else -> null
         }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun FrigoScreenWithTopBar(onNavigateToMenu: () -> Unit, onNavigateToCompte: () -> Unit) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Frigo", fontSize = 22.sp, color = Color.White) },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateToMenu) {
+                            Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = onNavigateToCompte) {
+                            Icon(Icons.Default.AccountCircle, contentDescription = "Compte", tint = Color.White)
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF2196F3))
+                )
+            },
+            content = { innerPadding ->
+                AndroidView(
+                    factory = { context ->
+                        val layout = LinearLayout(context).apply {
+                            orientation = LinearLayout.VERTICAL
+                            setPadding(24, 24, 24, 24)
+                            setBackgroundColor(android.graphics.Color.parseColor("#F3F7FB"))
+                        }
+
+                        textAucunAliment = TextView(context).apply {
+                            text = "Aucun aliment pour le moment 🍽️"
+                            textSize = 18f
+                            gravity = android.view.Gravity.CENTER
+                            setTextColor(android.graphics.Color.parseColor("#1976D2"))
+                            visibility = if (adapter.count == 0) TextView.VISIBLE else TextView.GONE
+                        }
+                        layout.addView(textAucunAliment)
+
+                        listeAliments = ListView(context).apply {
+                            adapter = this@FrigoActivity.adapter
+                            divider = context.getDrawable(android.R.color.darker_gray)
+                            dividerHeight = 1
+                        }
+                        layout.addView(listeAliments)
+
+                        val boutonsLayout = LinearLayout(context).apply {
+                            orientation = LinearLayout.HORIZONTAL
+                            weightSum = 2f
+                        }
+
+                        btnScanner = Button(context).apply {
+                            text = "Scanner"
+                            layoutParams = LinearLayout.LayoutParams(0, 120, 1f)
+                            setBackgroundColor(android.graphics.Color.parseColor("#1976D2"))
+                            setTextColor(android.graphics.Color.WHITE)
+                        }
+
+                        btnAjouter = Button(context).apply {
+                            text = "Ajouter"
+                            layoutParams = LinearLayout.LayoutParams(0, 120, 1f)
+                            setBackgroundColor(android.graphics.Color.parseColor("#1976D2"))
+                            setTextColor(android.graphics.Color.WHITE)
+                        }
+
+                        boutonsLayout.addView(btnScanner)
+                        boutonsLayout.addView(btnAjouter)
+                        layout.addView(boutonsLayout)
+
+                        layout
+                    },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                )
+            }
+        )
     }
 }

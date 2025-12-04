@@ -166,7 +166,7 @@ fun CompteScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                TextButton(onClick = { /* peut rester vide ou revenir à Frigo */ }) {
+                TextButton(onClick = { onNavigateToHome() }) {  // Correction : appelle la fonction
                     Text("← Retour à l'accueil", color = Color(0xFF0D47A1))
                 }
             }

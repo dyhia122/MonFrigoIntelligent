@@ -16,7 +16,8 @@ import java.time.temporal.ChronoUnit
 class AlimentAdapter(
     private val context: Context,
     private var aliments: MutableList<Aliment>,
-    private val dao: AlimentDao
+    private val dao: AlimentDao,
+    private val corbeilleDao: CorbeilleDao  // Ajouté pour gérer la corbeille
 ) : BaseAdapter() {
 
     fun updateData(newList: List<Aliment>) {
@@ -48,23 +49,51 @@ class AlimentAdapter(
 
         btnPlus.setOnClickListener {
             CoroutineScope(Dispatchers.IO).launch {
-                dao.update(aliment.copy(quantite = aliment.quantite + 1))
+                try {
+                    dao.update(aliment.copy(quantite = aliment.quantite + 1))
+                } catch (e: Exception) {
+                    e.printStackTrace()  // Log l'erreur pour éviter le crash
+                }
             }
         }
 
         btnMoins.setOnClickListener {
             CoroutineScope(Dispatchers.IO).launch {
-                if (aliment.quantite > 1) {
-                    dao.update(aliment.copy(quantite = aliment.quantite - 1))
-                } else {
-                    dao.delete(aliment)
+                try {
+                    if (aliment.quantite > 1) {
+                        dao.update(aliment.copy(quantite = aliment.quantite - 1))
+                    } else {
+                        // Déplacer vers la corbeille avant suppression
+                        val corbeilleItem = CorbeilleAliment(
+                            nom = aliment.nom,
+                            quantite = aliment.quantite,
+                            dateExpiration = aliment.dateExpiration,
+                            dateSuppression = LocalDate.now().toString()  // Date d'aujourd'hui
+                        )
+                        corbeilleDao.insert(corbeilleItem)
+                        dao.delete(aliment)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             }
         }
 
         btnDelete.setOnClickListener {
             CoroutineScope(Dispatchers.IO).launch {
-                dao.delete(aliment)
+                try {
+                    // Déplacer vers la corbeille avant suppression
+                    val corbeilleItem = CorbeilleAliment(
+                        nom = aliment.nom,
+                        quantite = aliment.quantite,
+                        dateExpiration = aliment.dateExpiration,
+                        dateSuppression = LocalDate.now().toString()
+                    )
+                    corbeilleDao.insert(corbeilleItem)
+                    dao.delete(aliment)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
 
