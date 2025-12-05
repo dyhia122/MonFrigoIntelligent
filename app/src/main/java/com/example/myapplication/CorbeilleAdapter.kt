@@ -5,7 +5,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
+import android.widget.ImageButton
 import android.widget.TextView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class CorbeilleAdapter(
     private val context: Context,
@@ -30,9 +34,16 @@ class CorbeilleAdapter(
 
         val textNom = view.findViewById<TextView>(R.id.textNom)
         val textDetails = view.findViewById<TextView>(R.id.textDetails)
+        val btnDeletePermanent = view.findViewById<ImageButton>(R.id.btnDeletePermanent)
 
         textNom.text = "${aliment.nom} x${aliment.quantite}"
         textDetails.text = "Supprimé le ${aliment.dateSuppression} | Exp: ${aliment.dateExpiration}"
+
+        btnDeletePermanent.setOnClickListener {
+            CoroutineScope(Dispatchers.IO).launch {
+                corbeilleDao.delete(aliment)
+            }
+        }
 
         return view
     }

@@ -7,6 +7,8 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -17,7 +19,7 @@ class AlimentAdapter(
     private val context: Context,
     private var aliments: MutableList<Aliment>,
     private val dao: AlimentDao,
-    private val corbeilleDao: CorbeilleDao  // Ajouté pour gérer la corbeille
+    private val corbeilleDao: CorbeilleDao
 ) : BaseAdapter() {
 
     fun updateData(newList: List<Aliment>) {
@@ -45,14 +47,16 @@ class AlimentAdapter(
 
         nom.text = aliment.nom
         quantite.text = "Quantité : ${aliment.quantite}"
-        expiration.text = getExpirationText(aliment.dateExpiration)
+        val (text, color) = getExpirationText(aliment.dateExpiration)
+        expiration.text = text
+        expiration.setTextColor(color.toArgb())
 
         btnPlus.setOnClickListener {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     dao.update(aliment.copy(quantite = aliment.quantite + 1))
                 } catch (e: Exception) {
-                    e.printStackTrace()  // Log l'erreur pour éviter le crash
+                    e.printStackTrace()
                 }
             }
         }
@@ -63,12 +67,11 @@ class AlimentAdapter(
                     if (aliment.quantite > 1) {
                         dao.update(aliment.copy(quantite = aliment.quantite - 1))
                     } else {
-                        // Déplacer vers la corbeille avant suppression
                         val corbeilleItem = CorbeilleAliment(
                             nom = aliment.nom,
                             quantite = aliment.quantite,
                             dateExpiration = aliment.dateExpiration,
-                            dateSuppression = LocalDate.now().toString()  // Date d'aujourd'hui
+                            dateSuppression = LocalDate.now().toString()
                         )
                         corbeilleDao.insert(corbeilleItem)
                         dao.delete(aliment)
@@ -82,7 +85,6 @@ class AlimentAdapter(
         btnDelete.setOnClickListener {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    // Déplacer vers la corbeille avant suppression
                     val corbeilleItem = CorbeilleAliment(
                         nom = aliment.nom,
                         quantite = aliment.quantite,
@@ -100,20 +102,22 @@ class AlimentAdapter(
         return view
     }
 
-    private fun getExpirationText(date: String): String {
+    private fun getExpirationText(date: String): Pair<String, Color> {
         return try {
             val today = LocalDate.now()
             val exp = LocalDate.parse(date)
             val days = ChronoUnit.DAYS.between(today, exp)
 
-            when {
-                days < 0 -> "⚠ Périmé depuis ${-days} jours"
-                days == 0L -> "⚠ Expire aujourd’hui"
-                days == 1L -> "Expire dans 1 jour"
-                else -> "Expire dans $days jours"
+            val (text, color) = when {
+                days < 0 -> "⚠ Périmé depuis ${-days} jours" to Color.Red
+                days == 0L -> "⚠ Expire aujourd’hui" to Color.Red
+                days == 1L -> "Expire dans 1 jour" to Color(0xFFFF9800)  // Orange
+                days <= 4L -> "Expire dans $days jours" to Color(0xFFFF9800)  // Orange
+                else -> "Expire dans $days jours" to Color.Green
             }
+            Pair(text, color)
         } catch (e: Exception) {
-            "Date invalide"
+            "Date invalide" to Color.Gray
         }
     }
 }
