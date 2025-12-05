@@ -2,91 +2,138 @@ package com.example.myapplication
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.foundation.BorderStroke
 
-class MenuScreen : AppCompatActivity() {
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 
+class MenuScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val layout = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setBackgroundColor(ContextCompat.getColor(this@MenuScreen, android.R.color.white))
-            setPadding(40, 80, 40, 40)
+        setContent {
+            MenuScreenContent()
         }
+    }
+}
 
-        val titre = TextView(this).apply {
-            text = "FridgeMate"
-            textSize = 26f
-            setTextColor(ContextCompat.getColor(this@MenuScreen, android.R.color.holo_blue_dark))
-            textAlignment = TextView.TEXT_ALIGNMENT_CENTER
-            setPadding(0, 0, 0, 40)
-        }
-        layout.addView(titre)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MenuScreenContent() {
+    val context = LocalContext.current
+    val backgroundColor = Color(0xFF2196F3)  // Bleu principal
 
-        fun creerBouton(texte: String, couleur: Int): Button {
-            return Button(this).apply {
-                text = texte
-                setBackgroundColor(ContextCompat.getColor(this@MenuScreen, couleur))
-                setTextColor(ContextCompat.getColor(this@MenuScreen, android.R.color.white))
-                textSize = 18f
-                val params = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-                params.setMargins(0, 0, 0, 20)
-                layoutParams = params
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("FridgeMate", fontSize = 22.sp, color = Color.White) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
+            )
+        },
+        content = { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .background(Color.White),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Titre dans un rectangle bleu
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .background(backgroundColor, RoundedCornerShape(8.dp))
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "FridgeMate",
+                        fontSize = 28.sp,
+                        color = Color.White,
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // Boutons avec arrière-plan blanc, texte noir, contours bleu
+                val buttonModifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .padding(vertical = 8.dp)
+
+                OutlinedButton(
+                    onClick = { context.startActivity(Intent(context, MainActivity::class.java)) },
+                    modifier = buttonModifier,
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color.White,
+                        contentColor = Color.Black
+                    ),
+                    border = BorderStroke(2.dp, Color(0xFF2196F3))  // Correction : BorderStroke au lieu de outlinedBorder
+                ) {
+                    Text("Accueil")
+                }
+
+                OutlinedButton(
+                    onClick = { context.startActivity(Intent(context, FrigoActivity::class.java)) },
+                    modifier = buttonModifier,
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color.White,
+                        contentColor = Color.Black
+                    ),
+                    border = BorderStroke(2.dp, Color(0xFF2196F3))
+                ) {
+                    Text("Mon Frigo")
+                }
+
+                OutlinedButton(
+                    onClick = { context.startActivity(Intent(context, RecettesActivity::class.java)) },
+                    modifier = buttonModifier,
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color.White,
+                        contentColor = Color.Black
+                    ),
+                    border = BorderStroke(2.dp, Color(0xFF2196F3))
+                ) {
+                    Text("Mes Recettes")
+                }
+
+                OutlinedButton(
+                    onClick = { context.startActivity(Intent(context, StatsActivity::class.java)) },
+                    modifier = buttonModifier,
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color.White,
+                        contentColor = Color.Black
+                    ),
+                    border = BorderStroke(2.dp, Color(0xFF2196F3))
+                ) {
+                    Text("Mes Statistiques")
+                }
+
+                OutlinedButton(
+                    onClick = { context.startActivity(Intent(context, CorbeilleActivity::class.java)) },
+                    modifier = buttonModifier,
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color.White,
+                        contentColor = Color.Black
+                    ),
+                    border = BorderStroke(2.dp, Color(0xFF2196F3))
+                ) {
+                    Text("Corbeille")
+                }
             }
         }
-
-        val btnAccueil = creerBouton("Accueil", android.R.color.holo_blue_dark)
-        val btnFrigo = creerBouton("Mon Frigo", android.R.color.holo_blue_light)
-        val btnRecettes = creerBouton("Mes Recettes", android.R.color.holo_blue_dark)
-        val btnStats = creerBouton("Mes Statistiques", android.R.color.holo_blue_light)
-        val btnCorbeille = creerBouton("Corbeille", android.R.color.holo_blue_dark)
-
-        layout.addView(btnAccueil)
-        layout.addView(btnFrigo)
-        layout.addView(btnRecettes)
-        layout.addView(btnStats)
-        layout.addView(btnCorbeille)
-
-        // === 🏠 Accueil : ouvre HomeScreen ===
-        btnAccueil.setOnClickListener {
-            val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
-            Toast.makeText(this, "Accueil ouvert", Toast.LENGTH_SHORT).show()
-        }
-
-        // === 🧊 Mon Frigo : ouvre FrigoActivity ===
-        btnFrigo.setOnClickListener {
-            val intent = Intent(this, FrigoActivity::class.java)
-            startActivity(intent)
-            Toast.makeText(this, "Ouverture du frigo...", Toast.LENGTH_SHORT).show()
-        }
-
-        // === Les autres ===
-        btnRecettes.setOnClickListener {
-            Toast.makeText(this, "Ouverture des recettes...", Toast.LENGTH_SHORT).show()
-        }
-
-        btnStats.setOnClickListener {
-            Toast.makeText(this, "Ouverture des statistiques...", Toast.LENGTH_SHORT).show()
-        }
-
-        btnCorbeille.setOnClickListener {
-            val intent = Intent(this, CorbeilleActivity::class.java)
-            startActivity(intent)
-            // Optionnel : toast
-            Toast.makeText(this, "Ouverture de la corbeille...", Toast.LENGTH_SHORT).show()
-        }
-
-
-        setContentView(layout)
-    }
+    )
 }

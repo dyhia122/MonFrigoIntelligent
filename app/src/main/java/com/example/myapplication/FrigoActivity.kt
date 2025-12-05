@@ -76,6 +76,8 @@ class FrigoActivity : AppCompatActivity() {
         lifecycleScope.launch {
             dao.getAllAliments().collectLatest { aliments ->
                 adapter.updateData(aliments)
+                // Correction : masquer le message si aliments présents
+                textAucunAliment.visibility = if (aliments.isEmpty()) TextView.VISIBLE else TextView.GONE
             }
         }
 
@@ -201,6 +203,23 @@ class FrigoActivity : AppCompatActivity() {
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF2196F3))
                 )
             },
+            floatingActionButton = {
+                Column {
+                    FloatingActionButton(
+                        onClick = { val intent = Intent(this@FrigoActivity, ScanActivity::class.java); startActivityForResult(intent, 200) },
+                        containerColor = Color(0xFF2196F3),
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    ) {
+                        Text("📷", fontSize = 20.sp)
+                    }
+                    FloatingActionButton(
+                        onClick = { afficherDialogAjout() },
+                        containerColor = Color(0xFF2196F3)
+                    ) {
+                        Text("+", fontSize = 20.sp)
+                    }
+                }
+            },
             content = { innerPadding ->
                 AndroidView(
                     factory = { context ->
@@ -225,29 +244,6 @@ class FrigoActivity : AppCompatActivity() {
                             dividerHeight = 1
                         }
                         layout.addView(listeAliments)
-
-                        val boutonsLayout = LinearLayout(context).apply {
-                            orientation = LinearLayout.HORIZONTAL
-                            weightSum = 2f
-                        }
-
-                        btnScanner = Button(context).apply {
-                            text = "Scanner"
-                            layoutParams = LinearLayout.LayoutParams(0, 120, 1f)
-                            setBackgroundColor(android.graphics.Color.parseColor("#1976D2"))
-                            setTextColor(android.graphics.Color.WHITE)
-                        }
-
-                        btnAjouter = Button(context).apply {
-                            text = "Ajouter"
-                            layoutParams = LinearLayout.LayoutParams(0, 120, 1f)
-                            setBackgroundColor(android.graphics.Color.parseColor("#1976D2"))
-                            setTextColor(android.graphics.Color.WHITE)
-                        }
-
-                        boutonsLayout.addView(btnScanner)
-                        boutonsLayout.addView(btnAjouter)
-                        layout.addView(boutonsLayout)
 
                         layout
                     },
