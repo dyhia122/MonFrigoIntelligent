@@ -10,7 +10,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.BorderStroke
-
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,7 +31,7 @@ class MenuScreen : ComponentActivity() {
 @Composable
 fun MenuScreenContent() {
     val context = LocalContext.current
-    val backgroundColor = Color(0xFF2196F3)  // Bleu principal
+    val backgroundColor = Color(0xFF2196F3)
 
     Scaffold(
         topBar = {
@@ -50,26 +49,8 @@ fun MenuScreenContent() {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Titre dans un rectangle bleu
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                        .background(backgroundColor, RoundedCornerShape(8.dp))
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "FridgeMate",
-                        fontSize = 28.sp,
-                        color = Color.White,
-                        textAlign = TextAlign.Center
-                    )
-                }
-
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Boutons avec arrière-plan blanc, texte noir, contours bleu
                 val buttonModifier = Modifier
                     .fillMaxWidth(0.8f)
                     .padding(vertical = 8.dp)
@@ -81,7 +62,7 @@ fun MenuScreenContent() {
                         containerColor = Color.White,
                         contentColor = Color.Black
                     ),
-                    border = BorderStroke(2.dp, Color(0xFF2196F3))  // Correction : BorderStroke au lieu de outlinedBorder
+                    border = BorderStroke(2.dp, Color(0xFF2196F3))
                 ) {
                     Text("Accueil")
                 }

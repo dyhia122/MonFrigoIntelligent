@@ -9,6 +9,7 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -50,6 +51,11 @@ class AlimentAdapter(
         val (text, color) = getExpirationText(aliment.dateExpiration)
         expiration.text = text
         expiration.setTextColor(color.toArgb())
+
+        // Amélioration design : Boutons avec icônes colorées
+        btnPlus.setColorFilter(ContextCompat.getColor(context, android.R.color.holo_green_dark))
+        btnMoins.setColorFilter(ContextCompat.getColor(context, android.R.color.holo_orange_dark))
+        btnDelete.setColorFilter(ContextCompat.getColor(context, android.R.color.holo_red_dark))
 
         btnPlus.setOnClickListener {
             CoroutineScope(Dispatchers.IO).launch {
@@ -111,8 +117,8 @@ class AlimentAdapter(
             val (text, color) = when {
                 days < 0 -> "⚠ Périmé depuis ${-days} jours" to Color.Red
                 days == 0L -> "⚠ Expire aujourd’hui" to Color.Red
-                days == 1L -> "Expire dans 1 jour" to Color(0xFFFF9800)  // Orange
-                days <= 4L -> "Expire dans $days jours" to Color(0xFFFF9800)  // Orange
+                days == 1L -> "Expire dans 1 jour" to Color(0xFFFF9800)
+                days <= 4L -> "Expire dans $days jours" to Color(0xFFFF9800)
                 else -> "Expire dans $days jours" to Color.Green
             }
             Pair(text, color)

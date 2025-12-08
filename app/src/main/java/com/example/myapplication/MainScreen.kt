@@ -14,7 +14,6 @@ fun MainScreen() {
     when (currentScreen) {
         "home" -> HomeScreen(
             onNavigateToMenu = {
-                // Lancer MenuScreen via Intent
                 val intent = Intent(context, MenuScreen::class.java)
                 context.startActivity(intent)
             },

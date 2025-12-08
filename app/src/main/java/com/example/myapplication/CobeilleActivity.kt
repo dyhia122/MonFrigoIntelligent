@@ -42,7 +42,6 @@ class CorbeilleActivity : AppCompatActivity() {
             )
         }
 
-        // Récupération des données depuis la base
         lifecycleScope.launch {
             corbeilleDao.getAllCorbeille().collectLatest { list ->
                 adapter.updateData(list)
@@ -83,7 +82,7 @@ class CorbeilleActivity : AppCompatActivity() {
                         }
 
                         val textAucuneCorbeille = TextView(context).apply {
-                            text = "La corbeille est vide"
+                            text = "La corbeille est vide 🗑️"
                             textSize = 18f
                             gravity = android.view.Gravity.CENTER
                             setTextColor(android.graphics.Color.parseColor("#1976D2"))

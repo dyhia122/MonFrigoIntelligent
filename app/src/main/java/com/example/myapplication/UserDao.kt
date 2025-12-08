@@ -11,7 +11,6 @@ interface UserDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertUser(user: User)
 
-    // On ne compare plus le mot de passe directement dans Room
     @Query("SELECT * FROM users WHERE nom = :nom LIMIT 1")
     suspend fun getUserByNom(nom: String): User?
 

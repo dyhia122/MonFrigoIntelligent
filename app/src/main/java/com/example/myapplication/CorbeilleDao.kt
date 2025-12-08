@@ -14,7 +14,7 @@ interface CorbeilleDao {
     fun getAllCorbeille(): Flow<List<CorbeilleAliment>>
 
     @Query("SELECT * FROM corbeille ORDER BY dateSuppression DESC")
-    fun getAllCorbeilleNow(): List<CorbeilleAliment>  // Ajouté pour StatsActivity
+    fun getAllCorbeilleNow(): List<CorbeilleAliment>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(corbeilleAliment: CorbeilleAliment)

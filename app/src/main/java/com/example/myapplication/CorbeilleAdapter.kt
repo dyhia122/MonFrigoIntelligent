@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -38,6 +39,8 @@ class CorbeilleAdapter(
 
         textNom.text = "${aliment.nom} x${aliment.quantite}"
         textDetails.text = "Supprimé le ${aliment.dateSuppression} | Exp: ${aliment.dateExpiration}"
+
+        btnDeletePermanent.setColorFilter(ContextCompat.getColor(context, android.R.color.holo_red_dark))
 
         btnDeletePermanent.setOnClickListener {
             CoroutineScope(Dispatchers.IO).launch {

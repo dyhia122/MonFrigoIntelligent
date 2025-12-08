@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
+import java.util.concurrent.Executors
 
 class ScanActivity : AppCompatActivity() {
 
@@ -23,13 +24,15 @@ class ScanActivity : AppCompatActivity() {
     private val cameraPermission = Manifest.permission.CAMERA
     private val cameraRequestCode = 200
 
+    private val cameraExecutor = Executors.newSingleThreadExecutor()
+    private var alreadyScanned = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_scan)
 
         previewView = findViewById(R.id.previewView)
 
-        // Vérifier permission caméra
         if (ContextCompat.checkSelfPermission(this, cameraPermission)
             != PackageManager.PERMISSION_GRANTED
         ) {
@@ -47,7 +50,8 @@ class ScanActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
         if (requestCode == cameraRequestCode && grantResults.isNotEmpty()
-            && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            && grantResults[0] == PackageManager.PERMISSION_GRANTED
+        ) {
             startCamera()
         } else {
             Toast.makeText(this, "Permission caméra refusée", Toast.LENGTH_SHORT).show()
@@ -59,18 +63,17 @@ class ScanActivity : AppCompatActivity() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
 
         cameraProviderFuture.addListener({
-
             val cameraProvider = cameraProviderFuture.get()
 
             val preview = androidx.camera.core.Preview.Builder().build().also {
                 it.setSurfaceProvider(previewView.surfaceProvider)
             }
 
-            // MLKit configuration
             val options = BarcodeScannerOptions.Builder()
                 .setBarcodeFormats(
                     com.google.mlkit.vision.barcode.common.Barcode.FORMAT_ALL_FORMATS
-                ).build()
+                )
+                .build()
 
             val scanner = BarcodeScanning.getClient(options)
 
@@ -78,7 +81,7 @@ class ScanActivity : AppCompatActivity() {
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build()
 
-            analysis.setAnalyzer(ContextCompat.getMainExecutor(this)) { imageProxy ->
+            analysis.setAnalyzer(cameraExecutor) { imageProxy ->
                 processImage(scanner, imageProxy)
             }
 
@@ -101,6 +104,11 @@ class ScanActivity : AppCompatActivity() {
         scanner: com.google.mlkit.vision.barcode.BarcodeScanner,
         imageProxy: ImageProxy
     ) {
+        if (alreadyScanned) {
+            imageProxy.close()
+            return
+        }
+
         val mediaImage = imageProxy.image
         if (mediaImage != null) {
             val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
@@ -108,28 +116,22 @@ class ScanActivity : AppCompatActivity() {
             scanner.process(image)
                 .addOnSuccessListener { barcodes ->
                     for (barcode in barcodes) {
+                        alreadyScanned = true
                         val value = barcode.rawValue ?: "Inconnu"
 
-                        // Renvoie le résultat au FrigoActivity
                         val resultIntent = Intent().apply {
                             putExtra("scanned_code", value)
                         }
                         setResult(RESULT_OK, resultIntent)
                         finish()
 
-                        imageProxy.close()
-                        return@addOnSuccessListener
+                        break
                     }
                 }
-                .addOnFailureListener {
-                    it.printStackTrace()
-                }
-                .addOnCompleteListener {
-                    try { imageProxy.close() } catch (_: Exception) {}
-                }
+                .addOnFailureListener { it.printStackTrace() }
+                .addOnCompleteListener { imageProxy.close() }
         } else {
-            try { imageProxy.close() } catch (_: Exception) {}
+            imageProxy.close()
         }
     }
-
 }
