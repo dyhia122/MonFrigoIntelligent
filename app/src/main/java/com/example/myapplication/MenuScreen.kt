@@ -5,15 +5,17 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
@@ -31,12 +33,31 @@ class MenuScreen : ComponentActivity() {
 @Composable
 fun MenuScreenContent() {
     val context = LocalContext.current
-    val backgroundColor = Color(0xFF2196F3)
+    val blueColor = Color(0xFF2196F3)
+    val backgroundColor = Color(0xFFF3F7FB)
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("FridgeMate", fontSize = 22.sp, color = Color.White) },
+                title = {
+                    Text(
+                        "FridgeMate",
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = blueColor,
+                        letterSpacing = 1.2.sp
+                    )
+                },
+                navigationIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Kitchen,
+                        contentDescription = "Logo",
+                        tint = blueColor,
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .size(28.dp)
+                    )
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
             )
         },
@@ -45,76 +66,66 @@ fun MenuScreenContent() {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .background(Color.White),
-                verticalArrangement = Arrangement.Center,
+                    .background(backgroundColor)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(32.dp))
-
-                val buttonModifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .padding(vertical = 8.dp)
-
-                OutlinedButton(
-                    onClick = { context.startActivity(Intent(context, MainActivity::class.java)) },
-                    modifier = buttonModifier,
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = Color.White,
-                        contentColor = Color.Black
-                    ),
-                    border = BorderStroke(2.dp, Color(0xFF2196F3))
-                ) {
-                    Text("Accueil")
+                MenuCard(Icons.Default.Home, "Accueil", blueColor) {
+                    context.startActivity(Intent(context, MainActivity::class.java))
                 }
-
-                OutlinedButton(
-                    onClick = { context.startActivity(Intent(context, FrigoActivity::class.java)) },
-                    modifier = buttonModifier,
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = Color.White,
-                        contentColor = Color.Black
-                    ),
-                    border = BorderStroke(2.dp, Color(0xFF2196F3))
-                ) {
-                    Text("Mon Frigo")
+                MenuCard(Icons.Default.Kitchen, "Mon Frigo", blueColor) {
+                    context.startActivity(Intent(context, FrigoActivity::class.java))
                 }
-
-                OutlinedButton(
-                    onClick = { context.startActivity(Intent(context, RecettesActivity::class.java)) },
-                    modifier = buttonModifier,
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = Color.White,
-                        contentColor = Color.Black
-                    ),
-                    border = BorderStroke(2.dp, Color(0xFF2196F3))
-                ) {
-                    Text("Mes Recettes")
+                MenuCard(Icons.Default.Book, "Mes Recettes", blueColor) {
+                    context.startActivity(Intent(context, RecettesActivity::class.java))
                 }
-
-                OutlinedButton(
-                    onClick = { context.startActivity(Intent(context, StatsActivity::class.java)) },
-                    modifier = buttonModifier,
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = Color.White,
-                        contentColor = Color.Black
-                    ),
-                    border = BorderStroke(2.dp, Color(0xFF2196F3))
-                ) {
-                    Text("Mes Statistiques")
+                MenuCard(Icons.Default.BarChart, "Mes Statistiques", blueColor) {
+                    context.startActivity(Intent(context, StatsActivity::class.java))
                 }
-
-                OutlinedButton(
-                    onClick = { context.startActivity(Intent(context, CorbeilleActivity::class.java)) },
-                    modifier = buttonModifier,
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = Color.White,
-                        contentColor = Color.Black
-                    ),
-                    border = BorderStroke(2.dp, Color(0xFF2196F3))
-                ) {
-                    Text("Corbeille")
+                MenuCard(Icons.Default.Delete, "Corbeille", blueColor) {
+                    context.startActivity(Intent(context, CorbeilleActivity::class.java))
                 }
             }
         }
     )
+}
+
+@Composable
+fun MenuCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    color: Color,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(70.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(16.dp),
+        border = androidx.compose.foundation.BorderStroke(2.dp, color),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize(),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 24.dp)
+            ) {
+                Icon(icon, contentDescription = title, tint = color, modifier = Modifier.size(32.dp))
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    text = title,
+                    fontSize = 20.sp,
+                    color = Color.Black,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+    }
 }

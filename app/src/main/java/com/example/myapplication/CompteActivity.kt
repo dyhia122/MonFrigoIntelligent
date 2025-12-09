@@ -10,8 +10,8 @@ class CompteActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             CompteScreen(
-                onNavigateToHome = { finish() },
-                onNavigateToMenu = { startActivity(Intent(this, MenuScreen::class.java)) }
+                onNavigateToHome = { finish() }, // Retour à l'écran précédent
+                onNavigateToMenu = { startActivity(Intent(this, MenuScreen::class.java)) } // Ouvre le menu
             )
         }
     }
